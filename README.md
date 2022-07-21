@@ -5,8 +5,8 @@
 1. Create a Private CA
 2. Create an intermediate certificate and install into AWS IoT CA Manager
 3. Use AWS ACM-PCA and AWS ACM to sign device CSR certs
-3.1 Get an AWS ACM-PCA CSR and sign with our ROOT cert
-3.2 Use that to allow AWS ACM to sign the CSR 
+   * Get an AWS ACM-PCA CSR and sign with our ROOT cert
+   * Use that to allow AWS ACM to sign the CSR 
 4. Register that device CRT with IoT
 5. Use the device CRT with both AWS IoI and N-able hosted Services
 
