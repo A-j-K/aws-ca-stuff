@@ -23,9 +23,8 @@ Note, in both config files:-
 * the directory was set to "/rootb/ca"
 * the defaults for Cert attributes were altered
 * the intermediate private key is **not** encrypted as we insert that into AWS ACM Private CA to sign certs
-* the certificate attributes for ROOT and INTERMEDIATE **must** match, if they do not the AWS ACM-PCA import will fail
 
-Use the script to create teh directory structure and files associated with CA management
+Use the script to create the directory structure and files associated with CA management
 ```
 $ create-dir-struct.sh
 ```
@@ -60,7 +59,7 @@ $ chmod 444 certs/ca.cert.pem
 $ openssl x509 -noout -text -in certs/ca.cert.pem
 ```
 
-Insure the the v3 extensions are applied similar to teh following:-
+Insure the the v3 extensions are applied similar to the following:-
 ```
         X509v3 extensions:
             X509v3 Subject Key Identifier:
