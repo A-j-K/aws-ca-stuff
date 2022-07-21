@@ -1,0 +1,86 @@
+{
+  "KeyAlgorithm": "RSA_2048"|"RSA_4096"|"EC_prime256v1"|"EC_secp384r1",
+  "SigningAlgorithm": "SHA256WITHECDSA"|"SHA384WITHECDSA"|"SHA512WITHECDSA"|"SHA256WITHRSA"|"SHA384WITHRSA"|"SHA512WITHRSA",
+  "Subject": {
+    "Country": "GB",
+    "Organization": "ACME",
+    "OrganizationalUnit": "",
+    "DistinguishedNameQualifier": "",
+    "State": "",
+    "CommonName": "ACME-CA",
+    "SerialNumber": "1",
+    "Locality": "",
+    "Title": "",
+    "Surname": "",
+    "GivenName": "",
+    "Initials": "",
+    "Pseudonym": "",
+    "GenerationQualifier": "",
+    "CustomAttributes": [
+      {
+        "ObjectIdentifier": "string",
+        "Value": "string"
+      }
+    ]
+  },
+  "CsrExtensions": {
+    "KeyUsage": {
+      "DigitalSignature": true|false,
+      "NonRepudiation": true|false,
+      "KeyEncipherment": true|false,
+      "DataEncipherment": true|false,
+      "KeyAgreement": true|false,
+      "KeyCertSign": true|false,
+      "CRLSign": true|false,
+      "EncipherOnly": true|false,
+      "DecipherOnly": true|false
+    },
+    "SubjectInformationAccess": [
+      {
+        "AccessMethod": {
+          "CustomObjectIdentifier": "string",
+          "AccessMethodType": "CA_REPOSITORY"|"RESOURCE_PKI_MANIFEST"|"RESOURCE_PKI_NOTIFY"
+        },
+        "AccessLocation": {
+          "OtherName": {
+            "TypeId": "string",
+            "Value": "string"
+          },
+          "Rfc822Name": "string",
+          "DnsName": "string",
+          "DirectoryName": {
+            "Country": "string",
+            "Organization": "string",
+            "OrganizationalUnit": "string",
+            "DistinguishedNameQualifier": "string",
+            "State": "string",
+            "CommonName": "string",
+            "SerialNumber": "string",
+            "Locality": "string",
+            "Title": "string",
+            "Surname": "string",
+            "GivenName": "string",
+            "Initials": "string",
+            "Pseudonym": "string",
+            "GenerationQualifier": "string",
+            "CustomAttributes": [
+              {
+                "ObjectIdentifier": "string",
+                "Value": "string"
+              }
+              ...
+            ]
+          },
+          "EdiPartyName": {
+            "PartyName": "string",
+            "NameAssigner": "string"
+          },
+          "UniformResourceIdentifier": "string",
+          "IpAddress": "string",
+          "RegisteredId": "string"
+        }
+      }
+      ...
+    ]
+  }
+}

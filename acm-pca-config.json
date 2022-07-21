@@ -1,0 +1,10 @@
+{
+	"KeyAlgorithm": "RSA_2048",
+	"SigningAlgorithm": "SHA256WITHRSA",
+	"Subject": {
+		"Country": "GB",
+		"Organization": "ACME",
+		"OrganizationalUnit": "Arch POC",
+		"CommonName": "ACME-CA"
+	}
+}
