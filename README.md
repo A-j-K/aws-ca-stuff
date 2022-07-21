@@ -22,14 +22,12 @@ $ create-dir-struct.sh
 Use a strong password
 
 ```
-$ cd rootb/ca
+$ cd /rootb/ca
 $ openssl genrsa -aes256 -out private/ca.key.pem 4096
 $ chmod 400 private/ca.key.pem
 ```
 
 ### Certificate
-
-Common Name []:ACME-ROOT-CA
 
 ```
 cd /rootb/ca
@@ -73,8 +71,6 @@ $ openssl genrsa -out intermediate/private/intermediate.key.pem 4096
 ```
 
 ### Create the Intermediate CSR
-
-* Common Name []:ACME-INT-CA
 
 ```
 $ cd /rootb/ca
@@ -122,7 +118,7 @@ It is assumed you already have AWS credentials setup as the default profile.
 To register a CA verification certificate with AWS IoT we need to acquire the registration key which is used in the CommonName field of the certificate.
 
 ```
- aws iot get-registration-code 
+$ aws iot get-registration-code 
 {
     "registrationCode": "e3f3XXXXXXXXXXX20XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 }
@@ -205,11 +201,12 @@ We begin by creating a root CA with AWS ACM Private CA. In this example we use a
 
 ```
 $ cd /rootb
-$ aws acm-pca create-certificate-authority --certificate-authority-configuration file://acm-pca-config.json --idempotency-token 8735431 --certificate-authority-type "SUBORDINATE"
+$ aws acm-pca create-certificate-authority \
+	--certificate-authority-configuration file://acm-pca-config.json \
+	--certificate-authority-type "SUBORDINATE" \
+	--idempotency-token 8735432
 # returns
 {
-    "CertificateAuthorityArn": "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/9e1f9317-7dd7-40c7-a74e-a451b2421a7e"
-                                arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/72622076-74f9-4b75-8674-8bdfe46c6d44
     "CertificateAuthorityArn": "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
 }
 ```
@@ -218,20 +215,52 @@ Verify this PCA
 ```
 $ cd /rootb
 $ aws acm-pca list-certificate-authorities
-$ aws acm-pca describe-certificate-authority --certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************
+$ aws acm-pca describe-certificate-authority \
+	--certificate-authority-arn \
+	arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************
 ```
 
 The description above should show "Status": "PENDING_CERTIFICATE".
+
+## Prepare the AWS ACM PCA CSR (it's acronym bingo!)
+
+This is a new intermediate certificate used to sign certs on our behalf.
+We therefore must pass trust to it by signing it with our ROOT key.
+
+Acquire the CSR from AWS ACM PCR...
+
+```
+$ cd /rootb/ca
+$ aws acm-pca get-certificate-authority-csr \
+	--output text \
+	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8 \
+	> intermediate/csr/aws-acm-pca.csr.pem
+$ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
+```
+
+Sign it with out ROOT key/certificate
+
+```
+$ cd /rootb/ca
+$ openssl ca -config openssl.cnf -extensions v3_intermediate_ca \
+      -days 7300 -notext -md sha256 \
+      -in intermediate/csr/aws-acm-pca.csr.pem \
+      -out intermediate/certs/aws-acm-pca.cert.pem
+$ chmod 444 intermediate/certs/aws-acm-pca.cert.pem
+```
 
 ## Install Certificates into the PCA
 
 ```
 $ cd /rootb/ca
 $ aws acm-pca import-certificate-authority-certificate \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/72622076-74f9-4b75-8674-8bdfe46c6d44 \
-	--certificate file://intermediate/certs/intermediate.cert.pem \
+	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8 \
+	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
 	--certificate-chain file://certs/ca.cert.pem
+
 	--certificate-chain file://intermediate/certs/ca-chain.cert.pem
 ```
+
+And we are done. However, ACM will only issue website certs complete with private key and it does not sign CSRs which makes this part of the investigation into using ACM to generate certs IoT would accept. It was an interesting exercise to do all this but ultimately failed to accomplish the goal.
 
 
