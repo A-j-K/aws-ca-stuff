@@ -146,7 +146,7 @@ Make a note of the registartion code to be used later.
 
 ### Create the AWS IoT  
 
-* Common Name []: <reg code above>
+* Common Name []: [reg code from previous step above]
 
 ```
 $ cd /rootb/ca
