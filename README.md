@@ -275,8 +275,6 @@ $ aws acm-pca import-certificate-authority-certificate \
 	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
 	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
 	--certificate-chain file://certs/ca.cert.pem
-
-	--certificate-chain file://intermediate/certs/ca-chain.cert.pem
 ```
 
 And we are done. However, ACM will only issue website certs complete with private key and it does not sign CSRs which makes this part of the investigation into using ACM to generate certs IoT would accept. It was an interesting exercise to do all this but ultimately failed to accomplish the goal.
