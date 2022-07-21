@@ -22,7 +22,6 @@ Note, in both config files:-
 
 * the directory was set to "/rootb/ca"
 * the defaults for Cert attributes were altered
-* the intermediate private key is **not** encrypted as we insert that into AWS ACM Private CA to sign certs
 
 Use the script to create the directory structure and files associated with CA management
 ```
@@ -76,11 +75,10 @@ Insure the the v3 extensions are applied similar to the following:-
 ## Create the Intermediate key and Intermediate Cert
 
 ### Create the Intermediate key
-Note, no password is used to protect this key as we want to allow AWS ACM to sign certificates
-and the AWS docvumentation says signing key/certs must not be password protected.
+
 ```
 $ cd /rootb/ca
-$ openssl genrsa -out intermediate/private/intermediate.key.pem 4096
+$ openssl genrsa -aes256 -out intermediate/private/intermediate.key.pem 4096
 ```
 
 ### Create the Intermediate CSR
