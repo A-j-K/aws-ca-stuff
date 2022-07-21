@@ -123,8 +123,6 @@ Int chain : intermediate/certs/ca-chain.cert.pem
 
 # AWS IoT CA
 
-Reference: https://aws.amazon.com/blogs/mobile/use-your-own-certificate-with-aws-iot
-
 In this section we will use the previous CA we created to create a set of Certs for AWS IoT.
 It is assumed you already have AWS credentials setup as the default profile.
 
@@ -281,4 +279,4 @@ And we are done. However, ACM will only issue website certs complete with privat
 * https://docs.aws.amazon.com/cli/latest/reference/acm-pca
 * https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
 * https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
-
+* https://aws.amazon.com/blogs/mobile/use-your-own-certificate-with-aws-iot
