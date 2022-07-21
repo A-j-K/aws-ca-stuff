@@ -1,5 +1,23 @@
 # POC Root CA demo
 
+## Goal:
+
+1. Create a Private CA
+2. Create an intermediate certificate and install into AWS IoT CA Manager
+3. Use AWS ACM-PCA and AWS ACM to sign device CSR certs
+3.1 Get an AWS ACM-PCA CSR and sign with our ROOT cert
+3.2 Use that to allow AWS ACM to sign the CSR 
+4. Register that device CRT with IoT
+5. Use the device CRT with both AWS IoI and N-able hosted Services
+
+## Outcome
+
+Ultimately this POC failed. AWS ACM does not sign CSR certs, it only issues website certs.
+
+The following remains as it may still be useful for future projects.
+
+## Proceedure
+
 This follows the guide as described here:-
 
 https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
@@ -233,7 +251,7 @@ Acquire the CSR from AWS ACM PCR...
 $ cd /rootb/ca
 $ aws acm-pca get-certificate-authority-csr \
 	--output text \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8 \
+	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
 	> intermediate/csr/aws-acm-pca.csr.pem
 $ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
 ```
@@ -254,7 +272,7 @@ $ chmod 444 intermediate/certs/aws-acm-pca.cert.pem
 ```
 $ cd /rootb/ca
 $ aws acm-pca import-certificate-authority-certificate \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8 \
+	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
 	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
 	--certificate-chain file://certs/ca.cert.pem
 
