@@ -2,7 +2,10 @@
 
 DIR="ca"
 
-if [[ ! -d $DIR ]]; then
+if [[ -d $DIR ]]; then
+	echo "The 'ca' directory allready exists"
+	exit 1
+else
 	mkdir $DIR || exit 1
 fi
 
