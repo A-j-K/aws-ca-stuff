@@ -18,10 +18,6 @@ The following remains as it may still be useful for future projects.
 
 ## Proceedure
 
-This follows the guide as described here:-
-
-https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
-
 Note, in both config files:-
 
 * the directory was set to "/rootb/ca"
@@ -279,4 +275,11 @@ $ aws acm-pca import-certificate-authority-certificate \
 
 And we are done. However, ACM will only issue website certs complete with private key and it does not sign CSRs which makes this part of the investigation into using ACM to generate certs IoT would accept. It was an interesting exercise to do all this but ultimately failed to accomplish the goal.
 
+## References
+
+https://docs.aws.amazon.com/cli/latest/reference/iot/
+https://docs.aws.amazon.com/cli/latest/reference/acm/
+https://docs.aws.amazon.com/cli/latest/reference/acm-pca/
+https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
+https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
 
