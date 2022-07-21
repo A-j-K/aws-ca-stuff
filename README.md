@@ -8,7 +8,7 @@
    * Get an AWS ACM-PCA CSR and sign with our ROOT cert
    * Use that to allow AWS ACM to sign the CSR 
 4. Register that device CRT with IoT
-5. Use the device CRT with both AWS IoI and N-able hosted Services
+5. Use the device CRT with both AWS IoI and your Private Company hosted services
 
 ## Outcome
 
