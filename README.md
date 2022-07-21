@@ -277,9 +277,9 @@ And we are done. However, ACM will only issue website certs complete with privat
 
 ## References
 
-https://docs.aws.amazon.com/cli/latest/reference/iot/
-https://docs.aws.amazon.com/cli/latest/reference/acm/
-https://docs.aws.amazon.com/cli/latest/reference/acm-pca/
-https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
-https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
+* https://docs.aws.amazon.com/cli/latest/reference/iot
+* https://docs.aws.amazon.com/cli/latest/reference/acm
+* https://docs.aws.amazon.com/cli/latest/reference/acm-pca
+* https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
+* https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
 
