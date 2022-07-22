@@ -1,0 +1,64 @@
+FROM ubuntu:20.04
+
+ENV INST_PACKAGES \
+	build-essential \
+	libssl-dev \
+	cmake \
+	unzip \
+	git \
+	curl \
+	wget \
+	bash \
+	tar \
+	vim \
+	groff \
+	jq 
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y ${INST_PACKAGES} 
+
+RUN	mkdir -p /var/tmp/ \
+	&& cd /var/tmp/ \
+	&& curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+	&& unzip awscliv2.zip \
+	&& rm -f awscliv2.zip \
+	&& ./aws/install \
+	&& cd .. \
+	&& rm -rf /var/tmp/aws \
+	&& aws --version
+	
+RUN mkdir -p /root/certs \
+	&& curl -o ~/certs/AmazonRootCA1.pem https://www.amazontrust.com/repository/AmazonRootCA1.pem \
+	&& chmod 700 /root/certs \
+	&& chmod 644 /root/certs/AmazonRootCA1.pem \
+	&& cd /root \
+	&& git clone https://github.com/awslabs/aws-iot-device-client aws-iot-device-client \
+	&& mkdir ~/aws-iot-device-client/build \
+	&& cd ~/aws-iot-device-client/build \
+	&& cmake ../ \
+	&& cmake --build . --target aws-iot-device-client \
+	&& make install
+
+ENV AWS_TUTORIAL_DIRS \
+	dc-configs \
+	policies \
+	messages \
+	certs/testconn \
+	certs/pubsub \
+	certs/jobs
+	
+RUN cd /root && mkdir -p ${AWS_TUTORIAL_DIRS} \
+	&& chmod -R 700 /root/certs
+	
+RUN cd /tmp \
+	&& curl -sSL https://go.dev/dl/go1.18.4.linux-amd64.tar.gz > go.tar.gz \
+	&& rm -rf /usr/local/go && tar -C /usr/local -xzf go.tar.gz \
+	&& rm -f go.tar.gz \
+	&& echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/profile \
+	&& echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/bash.bashrc
+
+RUN cp /root/aws-iot-device-client/build/aws-iot-device-client /usr/local/bin/aws-iot-device-client \
+	&& chmod 777 /usr/local/bin/aws-iot-device-client
+	
+WORKDIR /root
+
