@@ -4,6 +4,7 @@
 
 Before starting you will need:-
 
+* [Docker Engine](https://www.docker.com/) installed
 * To have provisioned an AWS IoT instance via the AWS Console (if one hasn't been provisioned)
 * AWS IAM AccessKey and SecretKey credentials with permissions to interact will AWS IoT.
 
