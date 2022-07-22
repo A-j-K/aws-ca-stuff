@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-Much of the IoT documentation refers to using devices such as the Raspberry PI as an IoT device to evaluate teh AWS IoT Client.
+Much of the IoT documentation refers to using devices such as the Raspberry PI as an IoT device to evaluate the AWS IoT Client.
 
 This isn't always so easy. So this section allows to build an IoT device as a Docker Container. You can then use these as multiple devices.
 
@@ -104,7 +104,11 @@ _(note, DEVNAME is an enviroment variable defined by the awsshell.sh script)_
 
 This command will register your device and on success return a JSON string with details about your device registration. Make a note of these.
 
-Once you reach this point you can now continue following the [standard AWS tutorial](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-testconn-provision.html#iot-dc-testconn-provision-aws). Good luck and happy MQTTing.
+Once you reach this point you can now continue following the [standard AWS tutorial](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-testconn-provision.html#iot-dc-testconn-provision-aws). 
+
+When you follow this tutorial you will add various configuration files as described. These will be stored in the directory structure that is mounted into your container. This ensures any work you do during the tutorial is maintained when the container is terminated thus allowing you to return to the tutorials any any time by starting the container again.
+
+Good luck and happy MQTTing.
 
 
 
