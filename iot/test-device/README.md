@@ -67,8 +67,25 @@ Ensure you read the linked documents here and populate each directory with the r
 
 ## Running the IoT Device
 
-
 The previous section was about setting up to execute the conatiner. Note that when the conatiner is run it is in foreground mode. To run multiple containers you will need multiple ssh/terminal windows to run each container in.
+
+To test our AWS creds were injected correctly we begin by running a test container:-
+```
+$ ./awsshell.sh
+root@b3358ccac92e:~#
+```
+_Note, your shell command will look like this but the container ID will be your shell prompt._
+
+Test the AWS Creds. _Note, before running this you will have needed to have created an AWS IoT instance using the AWS Console_
+```
+$ aws iot describe-endpoint --endpoint-type IoT:Data-ATS
+{
+    "endpointAddress": "a2************-ats.iot.eu-west-1.amazonaws.com"
+}
+```
+_(Note, I starred out my endpoint for security reasons, you will recieve back your endpoint)_
+
+
 
 
 
