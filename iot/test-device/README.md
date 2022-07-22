@@ -1,5 +1,12 @@
 # AWS IoT Test Device
 
+## Requirements
+
+Before starting you will need:-
+
+* To have provisioned an AWS IoT instance via the AWS Console (if one hasn't been provisioned)
+* AWS IAM AccessKey and SecretKey credentials with permissions to interact will AWS IoT.
+
 ## Getting Started
 
 Much of the IoT documentation refers to using devices such as the Raspberry PI as an IoT device to evaluate the AWS IoT Client.
