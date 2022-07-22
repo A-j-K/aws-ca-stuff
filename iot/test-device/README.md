@@ -67,7 +67,12 @@ Ensure you read the linked documents here and populate each directory with the r
 
 ## Running the IoT Device
 
+The following section can be found in the [AWS documentation](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-testconn-provision.html#iot-dc-testconn-provision-aws).
+
+### Check AWS Creds
+
 The previous section was about setting up to execute the conatiner. Note that when the conatiner is run it is in foreground mode. To run multiple containers you will need multiple ssh/terminal windows to run each container in.
+
 
 To test our AWS creds were injected correctly we begin by running a test container:-
 ```
@@ -84,6 +89,22 @@ $ aws iot describe-endpoint --endpoint-type IoT:Data-ATS
 }
 ```
 _(Note, I starred out my endpoint for security reasons, you will recieve back your endpoint)_
+
+### Register your device
+
+```
+$ aws iot create-thing --thing-name $DEVNAME
+{
+    "thingName": "DEVICE1",
+    "thingArn": "arn:aws:iot:eu-west-1:85**********:thing/DEVICE1",
+    "thingId": "ee6cde80-****-****-****-************"
+}
+```
+_(note, DEVNAME is an enviroment variable defined by the awsshell.sh script)_
+
+This command will register your device and on success return a JSON string with details about your device registration. Make a note of these.
+
+Once you reach this point you can now continue following the [standard AWS tutorial](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-testconn-provision.html#iot-dc-testconn-provision-aws). Good luck and happy MQTTing.
 
 
 

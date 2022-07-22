@@ -19,6 +19,7 @@ fi
 docker run \
 	--rm=true \
 	--name AWS-IOT-DEVICE-${IDX} \
+	-e DEVNAME="DEVICE${IDX}" \
 	-v ~/iot.storage/aws-config:/root/.aws/config \
 	-v ~/iot.storage/device${IDX}/root/dc-configs:/root/dc-configs \
 	-v ~/iot.storage/device${IDX}/root/certs:/root/certs \
