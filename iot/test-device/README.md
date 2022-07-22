@@ -21,9 +21,9 @@ docker run \
 	bash
 ```
 
-Ensure you [https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html](Read the getting started guide)
+Ensure you [read the getting started guide](https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html).
 
-The purpose and content of the following directories can [https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-download.html#iot-dc-install-dc-files](can be found here). Ensure you read these documents and setup the directories correctly before attempting to run a container.
+The purpose and content of the following directories can [can be found here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-download.html#iot-dc-install-dc-files). Ensure you read these documents and setup the directories correctly before attempting to run a container.
 
 * /root/dc-configs
 * /root/certs
@@ -35,5 +35,5 @@ You can run multiple conatiners to mimic multiple IoT devices but each container
 
 * /root/.aws/config
 
-This directory requires AWS credentials, read more about this [https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-provision.html](here). Note, it uses the Raspberry PI as an example but the information holds true for what you need to inject credentials into your container. Note, this mount (-v) can be shared across multiple containers so all use the same basic AWS Access credentials.
+This directory requires AWS credentials, read more about this [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-provision.html). Note, it uses the Raspberry PI as an example but the information holds true for what you need to inject credentials into your container. Note, this mount (-v) can be shared across multiple containers so all use the same basic AWS Access credentials.
 
