@@ -30,6 +30,8 @@ docker run \
         bash
 ```
 
+The file [aws-config-sample](https://github.com/A-j-K/aws-ca-stuff/blob/master/iot/test-device/aws-config-sample) is provided to show what the *~/iot.storage/aws-config* file should look like, ensure you put you own real creds into your *~/iot.storage/aws-config* file.
+
 Ensure you [read the getting started guide](https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html).
 
 The purpose and content of the following directories can be found [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-download.html#iot-dc-install-dc-files). Ensure you read these documents and setup the directories correctly before attempting to run a container.
