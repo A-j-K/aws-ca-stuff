@@ -1,5 +1,6 @@
 # AWS IoT Test Device
 
+## Getting Started
 
 Much of the IoT documentation refers to using devices such as the Raspberry PI as an IoT device to evaluate teh AWS IoT Client.
 
@@ -11,14 +12,15 @@ The _awsshell.sh_ script is an example of how to run a single image. Before runn
 
 ```
 docker run \
-	--rm=true \
-	-v ~/iot.aws:/root/.aws/config \
-	-v ~/iot.storage/root/dc-configs:/root/dc-configs \
-	-v ~/iot.storage/root/certs:/root/certs \
-	-v ~/iot.storage/root/messages:/root/messages \
-	-v ~/iot.storage/root/policies:/root/policies \
-	-it awsiotdevice:latest \
-	bash
+        --rm=true \
+        -v ~/iot.storage/aws-config:/root/.aws/config \
+        -v ~/iot.storage/device${IDX}/root/dc-configs:/root/dc-configs \
+        -v ~/iot.storage/device${IDX}/root/certs:/root/certs \
+        -v ~/iot.storage/device${IDX}/root/messages:/root/messages \
+        -v ~/iot.storage/device${IDX}/root/policies:/root/policies \
+        -it awsiotdevice:latest \
+        --name AWS-IOT-DEVICE-${IDX} \
+        bash
 ```
 
 Ensure you [read the getting started guide](https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html).
@@ -36,4 +38,36 @@ You can run multiple conatiners to mimic multiple IoT devices but each container
 * /root/.aws/config
 
 This directory requires AWS credentials, read more about this [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-provision.html). Note, it uses the Raspberry PI as an example but the information holds true for what you need to inject credentials into your container. Note, this mount (-v) can be shared across multiple containers so all use the same basic AWS Access credentials.
+
+The _setup-dir.sh_ shell file can be used to create the directory structure. It's up to you to fill these directories with the required startup files for the device. After running this script twice (__./setup-dir.sh__ 1 and __./setup-dir.sh 2__) you should find the directory stricture as shown below. Ensure you read the linked documents here.
+
+```
+/home/user/iot.storage/
+├── device1
+│   └── root
+│       ├── certs
+│       │   ├── jobs
+│       │   ├── pubsub
+│       │   └── testconn
+│       ├── dc-configs
+│       ├── messages
+│       └── policies
+└── device2
+    └── root
+        ├── certs
+        │   ├── jobs
+        │   ├── pubsub
+        │   └── testconn
+        ├── dc-configs
+        ├── messages
+        └── policies
+```
+
+## Running the IoT Device
+
+
+The previous section was about setting up to execute the conatiner. Note that when the conatiner is run it is in foreground mode. To run multiple containers you will need multiple ssh/terminal windows to run each container in.
+
+
+
 

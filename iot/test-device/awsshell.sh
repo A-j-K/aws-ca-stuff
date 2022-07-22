@@ -10,13 +10,20 @@ if [[ ! -d ~/iot.storage ]]; then
 	exit 1
 fi
 
+if [[ -z ${1} ]]; then
+	IDX="1"
+else
+	IDX=${1}
+fi
+
 docker run \
 	--rm=true \
-	-v ~/iot.aws:/root/.aws/config \
-	-v ~/iot.storage/root/dc-configs:/root/dc-configs \
-	-v ~/iot.storage/root/certs:/root/certs \
-	-v ~/iot.storage/root/messages:/root/messages \
-	-v ~/iot.storage/root/policies:/root/policies \
+	-v ~/iot.storage/aws-config:/root/.aws/config \
+	-v ~/iot.storage/device${IDX}/root/dc-configs:/root/dc-configs \
+	-v ~/iot.storage/device${IDX}/root/certs:/root/certs \
+	-v ~/iot.storage/device${IDX}/root/messages:/root/messages \
+	-v ~/iot.storage/device${IDX}/root/policies:/root/policies \
 	-it awsiotdevice:latest \
+	--name AWS-IOT-DEVICE-${IDX} \
 	bash
 
