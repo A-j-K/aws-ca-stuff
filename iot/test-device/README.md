@@ -39,7 +39,7 @@ You can run multiple conatiners to mimic multiple IoT devices but each container
 
 This directory requires AWS credentials, read more about this [here](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-provision.html). Note, it uses the Raspberry PI as an example but the information holds true for what you need to inject credentials into your container. Note, this mount (-v) can be shared across multiple containers so all use the same basic AWS Access credentials.
 
-The _setup-dir.sh_ shell file can be used to create the directory structure. It's up to you to fill these directories with the required startup files for the device. After running this script twice (__./setup-dir.sh__ 1 and __./setup-dir.sh 2__) you should find the directory stricture as shown below. Ensure you read the linked documents here.
+The _setup-dir.sh_ shell file can be used to create the directory structure. It's up to you to fill these directories with the required startup files for the device. After running this script twice (__./setup-dir.sh__ 1 and __./setup-dir.sh 2__) you should find the directory stricture as shown below.
 
 ```
 /home/user/iot.storage/
@@ -62,6 +62,8 @@ The _setup-dir.sh_ shell file can be used to create the directory structure. It'
         ├── messages
         └── policies
 ```
+
+Ensure you read the linked documents here and populate each directory with the required files.
 
 ## Running the IoT Device
 
