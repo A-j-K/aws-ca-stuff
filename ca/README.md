@@ -220,21 +220,33 @@ $ cd /rootb
 $ aws acm-pca list-certificate-authorities
 $ aws acm-pca describe-certificate-authority \
 	--certificate-authority-arn \
-	arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************
+		arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************
 ```
 
 The description above should show "Status": "PENDING_CERTIFICATE".
 
+### Install Certificates into the PCA
+
+```
+$ cd /rootb/ca
+$ aws acm-pca import-certificate-authority-certificate \
+	--certificate-authority-arn \
+		arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
+	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
+	--certificate-chain file://certs/ca.cert.pem
+```
 
 ## Issue a Device Certificate
 
 To begin the process of getting a certificate for a device the device should create a private key and a certificate signing request. Simulated here:-
 
 ```
-$ openssl genrsa -aes256 -out device.key 2048
+$ openssl genrsa -out device.key 2048
 $ openssl req -new -sha256 -key device.key -out device.csr
 ```
-**Note** that the CommonName (CN) should be the device GUID. Other fields for the certificate subject are yet to be defined.
+In the above example we did not password protect the private key. However, when a device creates the private key it should protect it via the Operating System's mechanisms to manage private keys.
+
+**Note** that the CommonName (CN) **must** be the device GUID. Other fields for the certificate subject are yet to be defined.
 
 We now ask AWS ACM PCA to provide is with a signed certificate from our Private CA:-
 
