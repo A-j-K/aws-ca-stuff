@@ -10,12 +10,6 @@
 4. Register that device CRT with IoT
 5. Use the device CRT with both AWS IoT and your Private Company hosted services
 
-## Outcome
-
-Ultimately this POC failed. AWS ACM does not sign CSR certs, it only issues website certs.
-
-The following remains as it may still be useful for future projects.
-
 ## Proceedure
 
 Note, in both config files:-
@@ -231,44 +225,115 @@ $ aws acm-pca describe-certificate-authority \
 
 The description above should show "Status": "PENDING_CERTIFICATE".
 
-## Prepare the AWS ACM PCA CSR (it's acronym bingo!)
 
-This is a new intermediate certificate used to sign certs on our behalf.
-We therefore must pass trust to it by signing it with our ROOT key.
+## Issue a Device Certificate
 
-Acquire the CSR from AWS ACM PCR...
+To begin the process of getting a certificate for a device the device should create a private key and a certificate signing request. Simulated here:-
 
 ```
-$ cd /rootb/ca
-$ aws acm-pca get-certificate-authority-csr \
-	--output text \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
-	> intermediate/csr/aws-acm-pca.csr.pem
-$ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
+$ openssl genrsa -aes256 -out device.key 2048
+$ openssl req -new -sha256 -key device.key -out device.csr
 ```
+**Note** that the CommonName (CN) should be the device GUID. Other fields for the certificate subject are yet to be defined.
 
-Sign it with out ROOT key/certificate
+We now ask AWS ACM PCA to provide is with a signed certificate from our Private CA:-
 
 ```
-$ cd /rootb/ca
-$ openssl ca -config openssl.cnf -extensions v3_intermediate_ca \
-      -days 7300 -notext -md sha256 \
-      -in intermediate/csr/aws-acm-pca.csr.pem \
-      -out intermediate/certs/aws-acm-pca.cert.pem
-$ chmod 444 intermediate/certs/aws-acm-pca.cert.pem
+$ aws acm-pca issue-certificate \
+        --certificate-authority-arn "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************" \
+        --csr file://device.csr \
+        --signing-algorithm SHA256WITHRSA \
+        --validity Value=364,Type="DAYS"
+{
+    "CertificateArn": "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169*************"
+}
 ```
 
-## Install Certificates into the PCA
+Now [get the certificate]():-
 
 ```
-$ cd /rootb/ca
-$ aws acm-pca import-certificate-authority-certificate \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************ \
-	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
-	--certificate-chain file://certs/ca.cert.pem
+$ aws acm-pca get-certificate \
+	--certificate-authority-arn "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************" \
+	--certificate-arn "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169*************"
+{
+	"Certificate": "-----BEGIN CERTIFICATE-----\nMIIDqTCCApGgAwIBAgIRAKFphRwi................."
+	"CertificateChain": "-----BEGIN CERTIFICATE-----\nMIIElDCCAnygAwIBAgICEAEwDQYJKoZIhvcNAQELBQAwc........................."
+}
 ```
 
-And we are done. However, ACM will only issue website certs complete with private key and it does not sign CSRs which makes this part of the investigation into using ACM to generate certs IoT would accept. It was an interesting exercise to do all this but ultimately failed to accomplish the goal.
+Notice that the returned value is a JSON object. The certs can be extracted using JQ thus:-
+
+```
+$ cat cert.json | jq -r .Certificate > device.crt
+$ cat cert.json | jq -r .CertificateChain > device_chain.crt
+```
+
+We can validate that the issued certificate is for the device GUID we supplied in teh CSR thus:-
+
+```
+$ openssl x509 -in device.crt -text -noout| grep "Subject:"
+	Subject: C = GB, ST = Some-State, O = NABLE, CN = b197cc51-c6f2-4347-acab-577117296395
+```
+
+We can validate the chain file is actually signed by our CA signing certificate thus:-
+
+```
+$ openssl x509 -in device_chain.crt -text -noout | grep "Subject:"
+	Subject: C = GB, O = ACME, OU = Arch POC, CN = ACME-CA
+```
+
+We now have the device certificate that:-
+* Needs to be registered with AWS IoT
+* Sent to the device to use the certificate
+
+## Register the Device Certificate with AWS IoT
+
+We now register tihe device certificate with AWS IoT
+
+```
+$ aws iot register-certificate-without-ca \
+        --status ACTIVE \
+        --certificate-pem file://device.crt
+{
+    "certificateArn": "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************",
+    "certificateId": "39c8e91e67e0df17d17d32910891dcfdff4a588647***********************"
+}
+```
+
+Now attach a policy to the certificate (notice here that the policy is named and not an ARN)
+
+```
+$ aws iot attach-policy \
+	--policy-name "POLICY_NAME" \
+	--target "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************"
+```
+
+Finally, as a test, the certificate can be double checked:-
+
+```
+$ aws iot describe-certificate \
+        --certificate-id "39c8e91e67e0df17d17d********************************************"
+{
+    "certificateDescription": {
+        "certificateArn": "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************",
+        "certificateId": "39c8e91e67e0df17d17d********************************************",
+        "status": "ACTIVE",
+        "certificatePem": "-----BEGIN CERTIFICATE-----\nMIIDqTCCApGgAwIBAgIRAKF******************************",
+        "ownedBy": "858204******",
+        "creationDate": 1658754661.42,
+        "lastModifiedDate": 1658754661.42,
+        "customerVersion": 1,
+        "transferData": {},
+        "generationId": "112cea4e-d070-4175-a9c8-***************",
+        "validity": {
+            "notBefore": 1658748293.0,
+            "notAfter": 1690201493.0
+        },
+        "certificateMode": "SNI_ONLY"
+    }
+}
+```
+
 
 ## References
 
