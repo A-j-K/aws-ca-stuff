@@ -334,6 +334,11 @@ $ aws iot describe-certificate \
 }
 ```
 
+## Send the Device its Certificates
+
+The last step is to return the device.crt and device_chain.crt certificates to the device to use to connect with AWS IoT.
+
+The following describes testing an IoT connecting and registering using the certificate provided by AWS ACM PCA and a Docker Container
 
 ## References
 
