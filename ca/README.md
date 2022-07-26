@@ -22,6 +22,12 @@ Use the script to create the directory structure and files associated with CA ma
 $ create-dir-struct.sh
 ```
 
+## Key and Cert Generation Flow
+
+
+![Certificate Authority Flow](images/2022-07-26_10h58_29.png)
+
+
 ## Create the Root key and Cert
 
 ### Root key
