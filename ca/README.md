@@ -30,7 +30,7 @@ $ create-dir-struct.sh
 
 ## Create the Root key and Cert
 
-### Root key
+### Root key (1)
 Use a strong password
 
 ```
@@ -39,7 +39,7 @@ $ openssl genrsa -aes256 -out private/ca.key.pem 4096
 $ chmod 400 private/ca.key.pem
 ```
 
-### Certificate
+### Create the Certificate (2)
 
 ```
 cd /rootb/ca
@@ -74,14 +74,14 @@ Insure the the v3 extensions are applied similar to the following:-
 
 ## Create the Intermediate key and Intermediate Cert
 
-### Create the Intermediate key
+### Create the Intermediate key (3)
 
 ```
 $ cd /rootb/ca
 $ openssl genrsa -aes256 -out intermediate/private/intermediate.key.pem 4096
 ```
 
-### Create the Intermediate CSR
+### Create the Intermediate CSR (4)
 
 ```
 $ cd /rootb/ca
@@ -90,7 +90,7 @@ $ openssl req -config intermediate/openssl.cnf -new -sha256 \
       -out intermediate/csr/intermediate.csr.pem
 ```
 
-#### Sign the CSR with the ROOT KEY to create the Cert
+#### Sign the CSR with the ROOT KEY to create the Cert (5)
 
 ```
 $ cd /rootb/ca
