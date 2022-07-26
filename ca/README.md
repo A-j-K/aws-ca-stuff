@@ -183,6 +183,7 @@ $ aws iot register-ca-certificate \
 	--verification-certificate file://intermediate/certs/aws-iot-chain.cert.pem \
 	--set-as-active \
 	--allow-auto-registration \
+	--registration-config file://your-template \ [TODO!](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html)
 	--tags 'Key=OWNER,Value=ajk'
 # returns:-
 {
