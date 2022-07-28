@@ -173,7 +173,7 @@ intermediate/certs/aws-iot.cert.pem
 intermediate/certs/aws-iot-chain.cert.pem
 ```
 
-We now register these with AWS IoT
+We now register these with AWS IoT (note at the end we assign the returned ARN to a shell var as we need it later on)
 
 ```
 cd /rootb/ca
@@ -189,6 +189,7 @@ $ aws iot register-ca-certificate \
     "certificateArn": "arn:aws:iot:eu-west-1:8582********:cacert/2ccc************************************************************",
     "certificateId": "2ccc************************************************************"
 }
+$ export AWS_IOT_CERTIFICATE_ARN="2ccc************************************************************"
 ```
 
 We now check it has registered with AWS IoT and is ACTIVE.
@@ -231,15 +232,19 @@ $ aws acm-pca create-certificate-authority \
 {
     "CertificateAuthorityArn": "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
 }
+$ export CA_ARN="arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
 ```
 
 Verify this PCA
 ```
 $ cd /rootb
-$ aws acm-pca list-certificate-authorities
 $ aws acm-pca describe-certificate-authority \
-	--certificate-authority-arn \
-		arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************
+	--certificate-authority-arn $CA_ARN
+```
+
+If needed, all CA certs can be listed thus:
+```
+$ aws acm-pca list-certificate-authorities
 ```
 
 The description above should show "Status": "PENDING_CERTIFICATE".
@@ -250,7 +255,7 @@ Now we acquire from AWS ACM PCA a certificate CSR that we must sign so that AWS 
 $ cd /rootb/ca
 $ aws acm-pca get-certificate-authority-csr \
 	--output text  \
-	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/9e1f9317-****-****-****-************ \
+	--certificate-authority-arn $CA_ARN \
 	> intermediate/csr/aws-acm-pca.csr.pem
 $ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
 ```
