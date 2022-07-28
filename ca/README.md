@@ -16,7 +16,7 @@ To follow this document you need
 
 * [AWS CLI](https://aws.amazon.com/cli/) installed
 * [jq](https://manpages.ubuntu.com/manpages/bionic/man1/jq.1.html) installed
-* [openssl](https://www.openssl.org/)
+* [openssl](https://www.openssl.org/) installed
 
 ## Proceedure
 
