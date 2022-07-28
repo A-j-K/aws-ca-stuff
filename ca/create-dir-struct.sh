@@ -13,6 +13,7 @@ fi
 pushd ${DIR}
 cp ${SCRIPTDIR}/openssl-root.cnf openssl.cnf 
 cp ${SCRIPTDIR}/templateBody/register-ca-cert-template.json register-ca-cert-template.json
+cp ${SCRIPTDIR}/acm-pca-config.json acm-pca-config.json
 mkdir certs crl newcerts private
 chmod 700 private
 touch index.txt

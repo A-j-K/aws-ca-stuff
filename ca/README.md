@@ -244,6 +244,30 @@ $ aws acm-pca describe-certificate-authority \
 
 The description above should show "Status": "PENDING_CERTIFICATE".
 
+Now we acquire from AWS ACM PCA a certificate CSR that we must sign so that AWS can use it's own certificate to sign device certs and pass on our private CA trust chain.
+
+```
+$ cd /rootb/ca
+$ aws acm-pca get-certificate-authority-csr \
+	--output text 
+	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/9e1f9317-****-****-****-************ \
+	> intermediate/csr/aws-acm-pca.csr.pem
+$ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
+```
+
+and sign it with our intermediate cert
+
+```
+$ cd /rootb/ca 
+$ openssl ca -config openssl.cnf \
+	-extensions v3_intermediate_ca \
+	-days 7300 \
+	-notext \
+	-md sha256 \
+	-in intermediate/csr/aws-acm-pca.csr.pem \
+	-out intermediate/certs/aws-acm-pca.cert.pem
+```
+
 ### Install Certificates into the PCA
 
 ```
