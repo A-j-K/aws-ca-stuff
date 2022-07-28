@@ -12,6 +12,7 @@ fi
 
 pushd ${DIR}
 cp ${SCRIPTDIR}/openssl-root.cnf openssl.cnf 
+cp ${SCRIPTDIR}/templateBody/acme_templateBody.json.txt acme_templateBody.json.txt
 mkdir certs crl newcerts private
 chmod 700 private
 touch index.txt
