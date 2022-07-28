@@ -283,6 +283,14 @@ $ aws acm-pca import-certificate-authority-certificate \
 	--certificate-chain file://certs/ca.cert.pem
 ```
 
+If we now again describe the AWS PCA CA we will see that its status has changed from "PENDING_CERTIFICATE" to "ACTIVE"
+```
+$ aws acm-pca describe-certificate-authority \
+	--certificate-authority-arn $CA_ARN \
+	| jq '.CertificateAuthority.Status'
+"ACTIVE"
+```
+
 ## Issue a Device Certificate
 
 To begin the process of getting a certificate for a device the device should create a private key and a certificate signing request. Simulated here:-
