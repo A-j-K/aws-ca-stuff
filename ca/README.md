@@ -249,7 +249,7 @@ Now we acquire from AWS ACM PCA a certificate CSR that we must sign so that AWS 
 ```
 $ cd /rootb/ca
 $ aws acm-pca get-certificate-authority-csr \
-	--output text 
+	--output text  \
 	--certificate-authority-arn arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/9e1f9317-****-****-****-************ \
 	> intermediate/csr/aws-acm-pca.csr.pem
 $ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
