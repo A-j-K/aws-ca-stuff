@@ -183,7 +183,7 @@ $ aws iot register-ca-certificate \
 	--verification-certificate file://intermediate/certs/aws-iot-chain.cert.pem \
 	--set-as-active \
 	--allow-auto-registration \
-	--registration-config file://acme_templateBody.json.txt \
+	--registration-config file://register-ca-cert-template.json \
 	--tags 'Key=OWNER,Value=ajk'
 # returns:-
 {
