@@ -203,6 +203,7 @@ $ aws iot register-ca-certificate \
     "certificateArn": "arn:aws:iot:eu-west-1:8582********:cacert/2ccc************************************************************",
     "certificateId": "2ccc************************************************************"
 }
+# Place the ARN in an ENV VAR
 $ export AWS_IOT_CERTIFICATE_ARN="2ccc************************************************************"
 ```
 
@@ -224,7 +225,7 @@ ToDo!!!
 ```
 $ cd/rootb/ca
 $ aws iot update-ca-certificate \
-	--certificate-id "2ccc************************************************************" \
+	--certificate-id "$AWS_IOT_CERTIFICATE_ARN" \
 	--registration-config file://register-ca-cert-template.json
 ```
 
@@ -241,7 +242,7 @@ $ cd /rootb
 $ aws acm-pca create-certificate-authority \
 	--certificate-authority-configuration file://acm-pca-config.json \
 	--certificate-authority-type "SUBORDINATE" \
-	--idempotency-token 8735432
+	--idempotency-token $RANDOM 
 # returns
 {
     "CertificateAuthorityArn": "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
@@ -321,25 +322,24 @@ We now ask AWS ACM PCA to provide is with a signed certificate from our Private 
 
 ```
 $ aws acm-pca issue-certificate \
-        --certificate-authority-arn "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************" \
+        --certificate-authority-arn "$CA_ARN" \
         --csr file://device.csr \
         --signing-algorithm SHA256WITHRSA \
         --validity Value=364,Type="DAYS"
 {
     "CertificateArn": "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169*************"
 }
+$ export CERT_ARN="arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169***********
+**"
 ```
 
 Now [get the certificate]():-
 
 ```
 $ aws acm-pca get-certificate \
-	--certificate-authority-arn "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************" \
-	--certificate-arn "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169*************"
-{
-	"Certificate": "-----BEGIN CERTIFICATE-----\nMIIDqTCCApGgAwIBAgIRAKFphRwi................."
-	"CertificateChain": "-----BEGIN CERTIFICATE-----\nMIIElDCCAnygAwIBAgICEAEwDQYJKoZIhvcNAQELBQAwc........................."
-}
+	--certificate-authority-arn "$CA_ARN" \
+	--certificate-arn "$CETR_ARN" \
+	> cert.json
 ```
 
 Notice that the returned value is a JSON object. The certs can be extracted using JQ thus:-
@@ -371,29 +371,31 @@ We now have the device certificate that:-
 
 We now register tihe device certificate with AWS IoT
 
+(note, todo, without ca?)
+
 ```
 $ aws iot register-certificate-without-ca \
         --status ACTIVE \
-        --certificate-pem file://device.crt
-{
-    "certificateArn": "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************",
-    "certificateId": "39c8e91e67e0df17d17d32910891dcfdff4a588647***********************"
-}
+        --certificate-pem file://device.crt \
+	> cert-reply.json
+$ cat cert-reply.json | jq -r '.certificateArn' > cert-arn.txt
+$ cat cert-reply.json | jq -r '.certificateId' > cert-id.txt
 ```
+
 
 Now attach a policy to the certificate (notice here that the policy is named and not an ARN)
 
 ```
 $ aws iot attach-policy \
 	--policy-name "POLICY_NAME" \
-	--target "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************"
+	--target $(cat cert-arn.txt)
 ```
 
 Finally, as a test, the certificate can be double checked:-
 
 ```
 $ aws iot describe-certificate \
-        --certificate-id "39c8e91e67e0df17d17d********************************************"
+        --certificate-id $(cat cert-id.txt)
 {
     "certificateDescription": {
         "certificateArn": "arn:aws:iot:eu-west-1:858204861084:cert/39c8e91e67e0df17d17d********************************************",
