@@ -17,7 +17,6 @@
                 "ThingName": { "Ref": "AWS::IoT::Certificate::CommonName" },
                 "ThingTypeName": "UnifiedAgent",
                 "ThingGroups": [
-                    "UnifiedAgents",
                     { "Ref": "AWS::IoT::Certificate::OrganizationName" }
                 ]
             },
