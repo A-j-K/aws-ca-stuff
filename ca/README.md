@@ -10,6 +10,14 @@
 4. Register that device CRT with IoT
 5. Use the device CRT with both AWS IoT and your Private Company hosted services
 
+## Requirements
+
+To follow this document you need
+
+* [AWS CLI](https://aws.amazon.com/cli/) installed
+* [jq](https://manpages.ubuntu.com/manpages/bionic/man1/jq.1.html) installed
+* [openssl](https://www.openssl.org/)
+
 ## Proceedure
 
 Note, in both config files:-
@@ -131,6 +139,12 @@ $ aws iot get-registration-code
 {
     "registrationCode": "e3f3XXXXXXXXXXX20XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 }
+```
+To make using this document simpler we will assign values returned by AWS to enviroment variables:-
+
+```
+$ REG_CODE=$(aws iot get-registration-code | jq -r '.registrationCode')
+$ echo $REG_CODE
 ```
 
 Make a note of the registartion code to be used later.
