@@ -1,25 +1,26 @@
 #!/bin/bash
 
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DIR="/rootb/ca"
 
-if [[ -d $DIR ]]; then
+if [[ -d ${DIR} ]]; then
 	echo "The 'ca' directory allready exists"
 	exit 1
 else
-	mkdir $DIR || exit 1
+	mkdir ${DIR} || exit 1
 fi
 
-pushd $DIR
-cp ../openssl-root.cnf openssl.cnf 
+pushd ${DIR}
+cp ${SCRIPTDIR}/openssl-root.cnf openssl.cnf 
 mkdir certs crl newcerts private
 chmod 700 private
 touch index.txt
 echo 1000 > serial
 popd
 
-pushd $DIR
+pushd ${DIR}
 mkdir intermediate
-cp ../openssl-intermediate.cnf intermediate/openssl.cnf
+cp ${SCRIPTDIR}/openssl-intermediate.cnf intermediate/openssl.cnf
 pushd intermediate
 mkdir certs crl csr newcerts private
 chmod 700 private
