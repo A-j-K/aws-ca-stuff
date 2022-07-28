@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR="ca"
+DIR="/rootb/ca"
 
 if [[ -d $DIR ]]; then
 	echo "The 'ca' directory allready exists"

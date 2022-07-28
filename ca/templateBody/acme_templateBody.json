@@ -3,10 +3,7 @@
         "AWS::IoT::Certificate::CommonName": {
             "Type": "String"
         },
-        "AWS::IoT::Certificate::SerialNumber": {
-            "Type": "String"
-        },
-        "AWS::IoT::Certificate::Country": {
+        "AWS::IoT::Certificate::OrganizationName": {
             "Type": "String"
         },
         "AWS::IoT::Certificate::Id": {
@@ -17,21 +14,11 @@
         "thing": {
             "Type": "AWS::IoT::Thing",
             "Properties": {
-                "ThingName": {
-                    "Ref": "AWS::IoT::Certificate::CommonName"
-                },
-                "AttributePayload": {
-                    "version": "v1",
-                    "serialNumber": {
-                        "Ref": "AWS::IoT::Certificate::SerialNumber"
-                    }
-                },
-                "ThingTypeName": "lightBulb-versionA",
+                "ThingName": { "Ref": "AWS::IoT::Certificate::CommonName" },
+                "ThingTypeName": "UnifiedAgent",
                 "ThingGroups": [
-                    "v1-lightbulbs",
-                    {
-                        "Ref": "AWS::IoT::Certificate::Country"
-                    }
+                    "UnifiedAgents",
+                    { "Ref": "AWS::IoT::Certificate::OrganizationName" }
                 ]
             },
             "OverrideSettings": {
@@ -55,7 +42,7 @@
         "policy": {
             "Type": "AWS::IoT::Policy",
             "Properties": {
-                "PolicyDocument": "{ \"Version\": \"2012-10-17\", \"Statement\": [{ \"Effect\": \"Allow\", \"Action\":[\"iot:Publish\"], \"Resource\": [\"arn:aws:iot:us-east-1:123456789012:topic/foo/bar\"] }] }"
+                "PolicyDocument": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iot:subscribe\",\"iot:Connect\",\"iot:publish\",\"iot:UpdateThingShadow\",\"iot:CreateTopicRule\"],\"Resource\":[\"*\"]}]}"
             }
         }
     }
