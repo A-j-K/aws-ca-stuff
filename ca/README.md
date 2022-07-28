@@ -183,7 +183,6 @@ $ aws iot register-ca-certificate \
 	--verification-certificate file://intermediate/certs/aws-iot-chain.cert.pem \
 	--set-as-active \
 	--allow-auto-registration \
-	--registration-config file://register-ca-cert-template.json \
 	--tags 'Key=OWNER,Value=ajk'
 # returns:-
 {
@@ -200,6 +199,19 @@ $ aws iot list-ca-certificates
 
 The _certificateId_ should appear in the list of certificates.
 
+### Add registration Template to IoT CA
+
+In order for devices issues with Certs signed by our CA we must associate the CA with a 
+[registration configuration](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html). (Also see [Provisioning Templates](https://docs.aws.amazon.com/iot/latest/developerguide/provision-template.html))
+
+ToDo!!!
+
+```
+$ cd/rootb/ca
+$ aws iot update-ca-certificate \
+	--certificate-id "2ccc************************************************************" \
+	--registration-config file://register-ca-cert-template.json
+```
 
 # AWS ACM Private CA
 
