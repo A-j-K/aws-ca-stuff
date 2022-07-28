@@ -122,6 +122,8 @@ Good luck and happy MQTTing.
 
 
 
+## References
 
+[AWS Tutorial Create Test Device](https://docs.aws.amazon.com/iot/latest/developerguide/iot-dc-install-provision.html)
 
 
