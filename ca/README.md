@@ -315,7 +315,7 @@ In otder to register the provision template we need two pieces of data, the IAM 
 
 ```
 { 
-      "roleArn" : "arn:aws:iam::123456789012:role/JITPRole"
+      "roleArn" : "arn:aws:iam::123*********:role/JITPRole"
       "templateBody" : "{\r\n    \"Parameters\" : {......................."
 } 
 ```
