@@ -327,8 +327,8 @@ $ cd /rootb/ca
 $ aws iam create-role \
 	--role-name "ACME-POC-IOT-JIT-PROV" \
 	--assume-role-policy-document "file://templateBody/json/role.json" \
-	> role_details.json
-$ cat role_details.json | jq -r .Role.Arn
+	> role-details.json
+$ cat role-details.json | jq -r .Role.Arn
 arn:aws:iam::85820*******:role/ACME-POC-IOT-JIT-PROV
 $ ROLE_ARN=$(cat role_details.json | jq -r .Role.Arn)
 $ echo $ROLE_ARN
@@ -339,7 +339,7 @@ We then need the templateBody. A sample exists in __templateBody/json/templateBo
 
 ```
 $ cat templateBody/json/templateBody.json | jq '@json'
-"{\"Parameters\":{\"AWS::IoT::Certificate::CommonName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::OrganizationName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::Id\":{\"Type\":\"String\"}},\"Resources\":{\"thing\":{\"Type\":\"AWS::IoT::Thing\",\"Properties\":{\"ThingName\":{\"Ref\":\"AWS::IoT::Certificate::CommonName\"},\"ThingTypeName\":\"UnifiedAgent\",\"ThingGroups\":[{\"Ref\":\"AWS::IoT::Certificate::OrganizationName\"}]},\"OverrideSettings\":{\"AttributePayload\":\"MERGE\",\"ThingTypeName\":\"REPLACE\",\"ThingGroups\":\"DO_NOTHING\"}},\"certificate\":{\"Type\":\"AWS::IoT::Certificate\",\"Properties\":{\"CertificateId\":{\"Ref\":\"AWS::IoT::Certificate::Id\"},\"Status\":\"ACTIVE\"},\"OverrideSettings\":{\"Status\":\"DO_NOTHING\"}},\"policy\":{\"Type\":\"AWS::IoT::Policy\",\"Properties\":{\"PolicyDocument\":\"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Effect\\\":\\\"Allow\\\",\\\"Action\\\":[\\\"iot:Subscribe\\\",\\\"iot:Connect\\\",\\\"iot:Publish\\\",\\\"iot:UpdateThingShadow\\\",\\\"iot:CreateTopicRule\\\"],\\\"Resource\\\":[\\\"*\\\"]}]}\"}}}}"
+"{\"Parameters\":{\"AWS::IoT::Certificate::CommonName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::OrganizationName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::Id\":{\"Type\":\"String\"}},\"Resources\":{\"thing\":{\"Type\":\"AWS::IoT::Thing\",\"Properties\":{\"ThingName\":{\"Ref\":\"AWS::IoT::Certificate::CommonName\"},\"ThingTypeName\":\"UnifiedAgent\",\"ThingGroups\":[{\"Ref\":\"AWS::IoT::Certificate::OrganizationName\"}]},\"OverrideSettings\":{\"AttributePayload\":\"MERGE\",\"ThingTypeName\":\"REPLACE\",\"ThingGroups\":\"DO\_NOTHING\"}},\"certificate\":{\"Type\":\"AWS::IoT::Certificate\",\"Properties\":{\"CertificateId\":{\"Ref\":\"AWS::IoT::Certificate::Id\"},\"Status\":\"ACTIVE\"},\"OverrideSettings\":{\"Status\":\"DO\_NOTHING\"}},\"policy\":{\"Type\":\"AWS::IoT::Policy\",\"Properties\":{\"PolicyDocument\":\"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Effect\\\":\\\"Allow\\\",\\\"Action\\\":[\\\"iot:Subscribe\\\",\\\"iot:Connect\\\",\\\"iot:Publish\\\",\\\"iot:UpdateThingShadow\\\",\\\"iot:CreateTopicRule\\\"],\\\"Resource\\\":[\\\"*\\\"]}]}\"}}}}"
 ```
 
 Finally using a text editor to create the final document prov.json ready to apply the provisioning template which looks like this:-
@@ -347,7 +347,7 @@ Finally using a text editor to create the final document prov.json ready to appl
 ```
 {
     "roleArn" : " <the IAM Role ARN from above> ",
-    "templateBody": "{  <the stringified output from above> "
+    "templateBody": " <the stringified output from above> "
 }
 ```
 
@@ -360,6 +360,14 @@ $ aws iot update-ca-certificate \
 	--registration-config file://prov.json 
 ```
 
+There is no output from this command unless it was unsuccessful. To verify the template was actually attached do the following and study the output:-
+
+```
+$ cd /rootb/ca
+$ aws iot describe-ca-certificate \
+	--certificate-id $AWS_IOT_CERTIFICATE_ID \
+	| jq '.registrationConfig.templateBody'
+```
 
 ## Issue a Device Certificate
 
