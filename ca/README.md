@@ -204,7 +204,8 @@ $ aws iot register-ca-certificate \
     "certificateId": "2ccc************************************************************"
 }
 # Place the ARN in an ENV VAR
-$ export AWS_IOT_CERTIFICATE_ARN="2ccc************************************************************"
+$ AWS_IOT_CERTIFICATE_ARN="arn:aws:iot:eu-west-1:8582********:cacert/2ccc************************************************************"
+$ AWS_IOT_CERTIFICATE_ID="2ccc************************************************************"
 ```
 
 We now check it has registered with AWS IoT and is ACTIVE.
@@ -305,6 +306,60 @@ $ aws acm-pca describe-certificate-authority \
 	| jq '.CertificateAuthority.Status'
 "ACTIVE"
 ```
+
+## AWS IAM and IoT Provisioning
+
+At this point certificates are installed in the correct places. The last step is to configure the AWS IoT CA to allow for [JIT provisioning](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html). This requires an IAM Role to be installed and then registering a provsioning template that leverages that IAM Role.
+
+In otder to register the provision template we need two pieces of data, the IAM Role and the JSON.stringyfied version of the template in a JSON document like this:-
+
+```
+{ 
+      "roleArn" : "arn:aws:iam::123456789012:role/JITPRole"
+      "templateBody" : "{\r\n    \"Parameters\" : {......................."
+} 
+```
+
+An IAM Role may already exist but here we create one for demonstration purposes:-
+
+```
+$ cd /rootb/ca
+$ aws iam create-role \
+	--role-name "ACME-POC-IOT-JIT-PROV" \
+	--assume-role-policy-document "file://templateBody/json/role.json" \
+	> role_details.json
+$ cat role_details.json | jq -r .Role.Arn
+arn:aws:iam::85820*******:role/ACME-POC-IOT-JIT-PROV
+$ ROLE_ARN=$(cat role_details.json | jq -r .Role.Arn)
+$ echo $ROLE_ARN
+arn:aws:iam::85820*******:role/ACME-POC-IOT-JIT-PROV
+```
+
+We then need the templateBody. A sample exists in __templateBody/json/templateBody.json__ and we JSON.stringify thus:-
+
+```
+$ cat templateBody/json/templateBody.json | jq '@json'
+"{\"Parameters\":{\"AWS::IoT::Certificate::CommonName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::OrganizationName\":{\"Type\":\"String\"},\"AWS::IoT::Certificate::Id\":{\"Type\":\"String\"}},\"Resources\":{\"thing\":{\"Type\":\"AWS::IoT::Thing\",\"Properties\":{\"ThingName\":{\"Ref\":\"AWS::IoT::Certificate::CommonName\"},\"ThingTypeName\":\"UnifiedAgent\",\"ThingGroups\":[{\"Ref\":\"AWS::IoT::Certificate::OrganizationName\"}]},\"OverrideSettings\":{\"AttributePayload\":\"MERGE\",\"ThingTypeName\":\"REPLACE\",\"ThingGroups\":\"DO_NOTHING\"}},\"certificate\":{\"Type\":\"AWS::IoT::Certificate\",\"Properties\":{\"CertificateId\":{\"Ref\":\"AWS::IoT::Certificate::Id\"},\"Status\":\"ACTIVE\"},\"OverrideSettings\":{\"Status\":\"DO_NOTHING\"}},\"policy\":{\"Type\":\"AWS::IoT::Policy\",\"Properties\":{\"PolicyDocument\":\"{\\\"Version\\\":\\\"2012-10-17\\\",\\\"Statement\\\":[{\\\"Effect\\\":\\\"Allow\\\",\\\"Action\\\":[\\\"iot:Subscribe\\\",\\\"iot:Connect\\\",\\\"iot:Publish\\\",\\\"iot:UpdateThingShadow\\\",\\\"iot:CreateTopicRule\\\"],\\\"Resource\\\":[\\\"*\\\"]}]}\"}}}}"
+```
+
+Finally using a text editor to create the final document prov.json ready to apply the provisioning template which looks like this:-
+
+```
+{
+    "roleArn" : " <the IAM Role ARN from above> ",
+    "templateBody": "{  <the stringified output from above> "
+}
+```
+
+The final step is to update the AWS IoT CA we created eariler and add this template:-
+
+```
+$ cd /rootb/ca
+$ aws iot update-ca-certificate \
+	--certificate-id $AWS_IOT_CERTIFICATE_ID \
+	--registration-config file://prov.json 
+```
+
 
 ## Issue a Device Certificate
 

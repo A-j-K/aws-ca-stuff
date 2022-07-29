@@ -1,20 +1,22 @@
 # JSON documents
 
+* role.json
+
+This JSON document is used part of the registration template for the IAM policy that is also required. This represents an example role.
+
 * templateBody.json
 
-This JSON document is a direct copy of the [example supplied by AWS](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html).
-
-* acme_templateBody.json
-
-This JSON document is an exitted version of the previous example for demonstration purposes
+This JSON document from the [example supplied by AWS](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html).
 
 * policy.json
 
-This JSON document is used part of the registration template for the IAM policy that is also required. This represents an example policy.
+Inspection of the templateBody.json file will show an embedded policy in JSON.stringyfy format. This JSON document is that document and the stringyfied version can be acquired this:-
 
-* acme_policy.json
+```
+$ cat policy.json | jq -r '@json'
+```
 
-This JSON document is an editted version of the previous example for demonstration purposes
+The output of which can be copied into the templateBody.json **before** that document itself is then also JSON.stringyfied
 
  
 

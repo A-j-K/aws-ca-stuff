@@ -1,20 +1,17 @@
 {
     "Version": "2012-10-17",
     "Statement": [
-        {
+	{
             "Effect": "Allow",
-            "Action": [
-                "iot:subscribe",
-                "iot:Connect",
-                "iot:publish",
-                "iot:UpdateThingShadow",
-                "iot:CreateTopicRule"
-            ],
-            "Resource": [
-		    "*",
-		    "arn:aws:iot:us-east-1:123456789012:topic/sample/topic",
-		    "arn:aws:iot:us-east-1:123456789012:topic/<DeviceGUID>"
-            ]
-        }
+	    "Action": [ 
+		"iot:Subscribe",
+		"iot:Connect",
+		"iot:Publish",
+		"iot:UpdateThingShadow",
+		"iot:CreateTopicRule"
+	    ],
+	    "Resource": ["*"]
+	}
     ]
 }
+
