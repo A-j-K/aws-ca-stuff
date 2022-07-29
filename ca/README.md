@@ -494,3 +494,5 @@ The following describes testing an IoT connecting and registering using the cert
 * https://jamielinux.com/docs/openssl-certificate-authority/introduction.html
 * https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
 * https://aws.amazon.com/blogs/mobile/use-your-own-certificate-with-aws-iot
+* https://catalog.us-east-1.prod.workshops.aws/workshops/7c2b04e7-8051-4c71-bc8b-6d2d7ce32727/en-US/provisioning-options/just-in-time-provisioning
+
