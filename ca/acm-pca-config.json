@@ -3,8 +3,10 @@
 	"SigningAlgorithm": "SHA256WITHRSA",
 	"Subject": {
 		"Country": "GB",
+		"State": "Scotland",
 		"Organization": "ACME",
-		"OrganizationalUnit": "Arch POC",
+		"OrganizationalUnit": "Arch",
 		"CommonName": "ACME-CA"
 	}
 }
+

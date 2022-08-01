@@ -80,132 +80,141 @@ Insure the the v3 extensions are applied similar to the following:-
                 Digital Signature, Certificate Sign, CRL Sign
 ```
 
-## Create the Intermediate key and Intermediate Cert
-
-### Create the Intermediate key (3)
-
-```
-$ cd /rootb/ca
-$ openssl genrsa -aes256 -out intermediate/private/intermediate.key.pem 4096
-```
-
-### Create the Intermediate CSR (4)
-
-```
-$ cd /rootb/ca
-$ openssl req -config intermediate/openssl.cnf -new -sha256 \
-      -key intermediate/private/intermediate.key.pem \
-      -out intermediate/csr/intermediate.csr.pem
-```
-
-#### Sign the CSR with the ROOT KEY to create the Cert (5)
-
-```
-$ cd /rootb/ca
-$ openssl ca -config openssl.cnf -extensions v3_intermediate_ca \
-      -days 7300 -notext -md sha256 \
-      -in intermediate/csr/intermediate.csr.pem \
-      -out intermediate/certs/intermediate.cert.pem
-$ chmod 444 intermediate/certs/intermediate.cert.pem
-```
-
-Create the intermediate chain file. Note the order, the root cert is last in the chain.
-```
-$ cd /rootb/ca
-$ cat intermediate/certs/intermediate.cert.pem \
-      certs/ca.cert.pem > intermediate/certs/ca-chain.cert.pem
-$ chmod 444 intermediate/certs/ca-chain.cert.pem
-```
-
 ## Details
 
 ```
 Root key  : private/ca.key.pem
 Root cert : certs/ca.cert.pem
-Int  key  : intermediate/private/intermediate.key.pem
-Int  cert : intermediate/certs/intermediate.cert.pem
-Int chain : intermediate/certs/ca-chain.cert.pem
 ```
+
+# AWS ACM PCA
+
+We now create a Private CA using AWS ACM PCA.
+
+```
+$ cd /rootb/ca
+$ mkdir -p /var/tmp/ca
+$ aws acm-pca create-certificate-authority \
+	--certificate-authority-configuration file://acm-pca-config.json \
+	--certificate-authority-type "SUBORDINATE" \
+	--idempotency-token $(date +'%Y%m%d%H%M%S') \
+	> /var/tmp/ca/CertificateAuthorityArn.json
+$ PCA_CA_ARN=$(cat /var/tmp/ca/CertificateAuthorityArn.json | jq -r '.CertificateAuthorityArn')
+$ echo $PCA_CA_ARN
+```
+
+Verify the PCA
+
+```
+$ cd /rootb/ca
+$ aws acm-pca describe-certificate-authority \
+	--certificate-authority-arn $PCA_CA_ARN
+```
+
+Note, it should say that the status is PENDING_CERTIFICATE:-
+
+```
+$ aws acm-pca describe-certificate-authority \
+        --certificate-authority-arn $PCA_CA_ARN \
+	| jq -r '.CertificateAuthority.Status'
+PENDING_CERTIFICATE
+```
+
+Now we acquire from AWS ACM PCA a certificate CSR that we must sign so that AWS can use it's own certificate to sign device certs and pass on our private CA trust chain.
+
+```
+cd /rootb/ca
+$ aws acm-pca get-certificate-authority-csr \
+	--output text \
+	--certificate-authority-arn $PCA_CA_ARN \
+	> csr/aws-acm-pca.csr.pem
+$ chmod 400 csr/aws-acm-pca.csr.pem
+```
+
+and sign it with our CA cert 
+
+```
+$ cd /rootb/ca 
+$ openssl ca -config openssl.cnf \
+	-extensions v3_intermediate_ca \
+	-days 7300 \
+	-notext \
+	-md sha256 \
+	-in csr/aws-acm-pca.csr.pem \
+	-out certs/aws-acm-pca.cert.pem
+```
+
+Now we install this certificate into the AWS ACM PCA so it can issue certs on our behalf
+
+```
+$ cd /rootb/ca
+$ aws acm-pca import-certificate-authority-certificate \
+	--certificate-authority-arn $PCA_CA_ARN \
+	--certificate file://certs/aws-acm-pca.cert.pem \
+	--certificate-chain file://certs/ca.cert.pem
+```
+
+There is no return from this command unless an error has occured. Let's verify all is well:-
+
+```
+$ cd /rootb/ca
+$ aws acm-pca describe-certificate-authority \
+	--certificate-authority-arn $PCA_CA_ARN \
+	| jq -r '.CertificateAuthority.Status'
+ACTIVE
+```
+
+We now have a managed subordinate AWS ACM PCA managed system to issue certificates on our behalf.
 
 # AWS IoT CA
 
-In this section we will use the previous CA we created to create a set of Certs for AWS IoT.
-It is assumed you already have AWS credentials setup as the default profile.
+In this section we will use our CA to create a certificate for the AWS IoT CA
 
 To register a CA verification certificate with AWS IoT we need to acquire the registration key which is used in the CommonName field of the certificate.
 
 ```
-$ aws iot get-registration-code 
-{
-    "registrationCode": "e3f3XXXXXXXXXXX20XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-}
-```
-To make using this document simpler we will assign values returned by AWS to enviroment variables:-
-
-```
-$ REG_CODE=$(aws iot get-registration-code | jq -r '.registrationCode')
-$ echo $REG_CODE
+$ aws iot get-registration-code \
+	> /var/tmp/ca/iot-registration-code.json
+$ IOT_REG_CODE=$(cat /var/tmp/ca/iot-registration-code.json | jq -r '.registrationCode')
+$ echo $IOT_REG_CODE
+e3f3************************************************************
 ```
 
-Make a note of the registartion code to be used later.
-
-### Create the AWS IoT  
-
-* Common Name []: [reg code from previous step above]
+### Create the AWS IoT Certs
 
 ```
-$ cd /rootb/ca
-$ openssl req -config intermediate/openssl.cnf -new -sha256 \
-      -key intermediate/private/intermediate.key.pem \
-      -out intermediate/csr/aws-iot.csr.pem
+$ openssl req -nodes -new -newkey rsa:2048 \
+            -keyout private/iot-reg.key \
+            -out csr/iot-reg.csr \
+            -subj "/CN=$IOT_REG_CODE"
 ```
 
-#### Sign the CSR with the Intermediate KEY to create the Cert
+We now sign this CSR with our CA 
 
 ```
 $ cd /rootb/ca
-$ openssl ca -config intermediate/openssl.cnf -extensions v3_intermediate_ca \
+$ openssl ca -config openssl.cnf -extensions v3_intermediate_ca \
       -days 7300 -notext -md sha256 \
-      -in intermediate/csr/aws-iot.csr.pem \
-      -out intermediate/certs/aws-iot.cert.pem
-$ chmod 444 intermediate/certs/aws-iot.cert.pem
+      -in csr/iot-reg.csr \
+      -out certs/iot-reg.crt
+$ chmod 444 certs/iot-reg.crt
 ```
 
-Create the intermediate chain file. Note the order, the root cert is last in the chain.
+We can now import this into AWS IoT
+
 ```
 $ cd /rootb/ca
-$ cat intermediate/certs/aws-iot.cert.pem \
-      intermediate/certs/intermediate.cert.pem \
-      certs/ca.cert.pem > intermediate/certs/aws-iot-chain.cert.pem
-$ chmod 444 intermediate/certs/aws-iot-chain.cert.pem
-```
-
-This process created two new files (we ignore the csr file):-
-
-```
-intermediate/certs/aws-iot.cert.pem
-intermediate/certs/aws-iot-chain.cert.pem
-```
-
-We now register these with AWS IoT (note at the end we assign the returned ARN to a shell var as we need it later on)
-
-```
-cd /rootb/ca
-
 $ aws iot register-ca-certificate \
-	--ca-certificate file://intermediate/certs/intermediate.cert.pem \
-	--verification-certificate file://intermediate/certs/aws-iot-chain.cert.pem \
+	--ca-certificate file://certs/ca.cert.pem \
+	--verification-certificate file://certs/iot-reg.crt \
 	--set-as-active \
 	--allow-auto-registration \
-	--tags 'Key=OWNER,Value=ajk'
-# returns:-
-{
-    "certificateArn": "arn:aws:iot:eu-west-1:8582********:cacert/2ccc************************************************************",
-    "certificateId": "2ccc************************************************************"
-}
-# Place the ARN in an ENV VAR
-$ AWS_IOT_CERTIFICATE_ARN="arn:aws:iot:eu-west-1:8582********:cacert/2ccc************************************************************"
-$ AWS_IOT_CERTIFICATE_ID="2ccc************************************************************"
+	--tags 'Key=OWNER,Value=ajk' \
+	> /var/tmp/ca/register-ca-certificate.json
+$ AWS_IOT_CERTIFICATE_ARN=$(cat /var/tmp/ca/register-ca-certificate.json | jq -r '.certificateArn')
+$ echo $AWS_IOT_CERTIFICATE_ARN
+$ AWS_IOT_CERTIFICATE_ID=$(cat /var/tmp/ca/register-ca-certificate.json | jq -r '.certificateId')
+$ echo $AWS_IOT_CERTIFICATE_ID
 ```
 
 We now check it has registered with AWS IoT and is ACTIVE.
@@ -216,96 +225,6 @@ $ aws iot list-ca-certificates
 
 The _certificateId_ should appear in the list of certificates.
 
-### Add registration Template to IoT CA
-
-In order for devices issues with Certs signed by our CA we must associate the CA with a 
-[registration configuration](https://docs.aws.amazon.com/iot/latest/developerguide/jit-provisioning.html). (Also see [Provisioning Templates](https://docs.aws.amazon.com/iot/latest/developerguide/provision-template.html))
-
-ToDo!!!
-
-```
-$ cd/rootb/ca
-$ aws iot update-ca-certificate \
-	--certificate-id "$AWS_IOT_CERTIFICATE_ARN" \
-	--registration-config file://register-ca-cert-template.json
-```
-
-# AWS ACM Private CA
-
-In this section we will insert our intermediate signing CA key and certificates into ACM.
-
-## Create a Private Certificate Authority
-
-We begin by creating a root CA with AWS ACM Private CA. In this example we use a basic configuration file acm-pca-config.json
-
-```
-$ cd /rootb
-$ aws acm-pca create-certificate-authority \
-	--certificate-authority-configuration file://acm-pca-config.json \
-	--certificate-authority-type "SUBORDINATE" \
-	--idempotency-token $RANDOM 
-# returns
-{
-    "CertificateAuthorityArn": "arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
-}
-$ export CA_ARN="arn:aws:acm-pca:eu-west-1:8582********:certificate-authority/9e1f9317-****-****-****-************"
-```
-
-Verify this PCA
-```
-$ cd /rootb
-$ aws acm-pca describe-certificate-authority \
-	--certificate-authority-arn $CA_ARN
-```
-
-If needed, all CA certs can be listed thus:
-```
-$ aws acm-pca list-certificate-authorities
-```
-
-The description above should show "Status": "PENDING_CERTIFICATE".
-
-Now we acquire from AWS ACM PCA a certificate CSR that we must sign so that AWS can use it's own certificate to sign device certs and pass on our private CA trust chain.
-
-```
-$ cd /rootb/ca
-$ aws acm-pca get-certificate-authority-csr \
-	--output text  \
-	--certificate-authority-arn $CA_ARN \
-	> intermediate/csr/aws-acm-pca.csr.pem
-$ chmod 400 intermediate/csr/aws-acm-pca.csr.pem
-```
-
-and sign it with our intermediate cert
-
-```
-$ cd /rootb/ca 
-$ openssl ca -config openssl.cnf \
-	-extensions v3_intermediate_ca \
-	-days 7300 \
-	-notext \
-	-md sha256 \
-	-in intermediate/csr/aws-acm-pca.csr.pem \
-	-out intermediate/certs/aws-acm-pca.cert.pem
-```
-
-### Install Certificates into the PCA
-
-```
-$ cd /rootb/ca
-$ aws acm-pca import-certificate-authority-certificate \
-	--certificate-authority-arn $CA_ARN \
-	--certificate file://intermediate/certs/aws-acm-pca.cert.pem \
-	--certificate-chain file://certs/ca.cert.pem
-```
-
-If we now again describe the AWS PCA CA we will see that its status has changed from "PENDING_CERTIFICATE" to "ACTIVE"
-```
-$ aws acm-pca describe-certificate-authority \
-	--certificate-authority-arn $CA_ARN \
-	| jq '.CertificateAuthority.Status'
-"ACTIVE"
-```
 
 ## AWS IAM and IoT Provisioning
 
@@ -375,33 +294,32 @@ To begin the process of getting a certificate for a device the device should cre
 
 ```
 $ openssl genrsa -out device.key 2048
-$ openssl req -new -sha256 -key device.key -out device.csr
+$ openssl req -new -key device.key \
+            -out device.csr \
+            -subj "/CN=23855e5d-2443-47bc-97fc-41bb685b2ab3"
 ```
 In the above example we did not password protect the private key. However, when a device creates the private key it should protect it via the Operating System's mechanisms to manage private keys.
 
 **Note** that the CommonName (CN) **must** be the device GUID. Other fields for the certificate subject are yet to be defined.
 
-We now ask AWS ACM PCA to provide is with a signed certificate from our Private CA:-
+We now ask AWS ACM PCA to provide a signed certificate from our Private CA:-
 
 ```
 $ aws acm-pca issue-certificate \
-        --certificate-authority-arn "$CA_ARN" \
+        --certificate-authority-arn "$PCA_CA_ARN" \
         --csr file://device.csr \
         --signing-algorithm SHA256WITHRSA \
-        --validity Value=364,Type="DAYS"
-{
-    "CertificateArn": "arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169*************"
-}
-$ export CERT_ARN="arn:aws:acm-pca:eu-west-1:858204861084:certificate-authority/80d65aa0-041d-441b-a731-a556ed0f23e8/certificate/a169***********
-**"
+        --validity Value=364,Type="DAYS" \
+	> pca.json
+$ CERT_ARN=$(cat pca.json | jq -r '.CertificateArn')
 ```
 
 Now [get the certificate]():-
 
 ```
 $ aws acm-pca get-certificate \
-	--certificate-authority-arn "$CA_ARN" \
-	--certificate-arn "$CETR_ARN" \
+	--certificate-authority-arn "$PCA_CA_ARN" \
+	--certificate-arn "$CERT_ARN" \
 	> cert.json
 ```
 
@@ -412,7 +330,7 @@ $ cat cert.json | jq -r .Certificate > device.crt
 $ cat cert.json | jq -r .CertificateChain > device_chain.crt
 ```
 
-We can validate that the issued certificate is for the device GUID we supplied in teh CSR thus:-
+We can validate that the issued certificate is for the device GUID we supplied in the CSR thus:-
 
 ```
 $ openssl x509 -in device.crt -text -noout| grep "Subject:"
@@ -423,6 +341,7 @@ We can validate the chain file is actually signed by our CA signing certificate 
 
 ```
 $ openssl x509 -in device_chain.crt -text -noout | grep "Subject:"
+
 	Subject: C = GB, O = ACME, OU = Arch POC, CN = ACME-CA
 ```
 
@@ -437,12 +356,17 @@ We now register tihe device certificate with AWS IoT
 (note, todo, without ca?)
 
 ```
-$ aws iot register-certificate-without-ca \
-        --status ACTIVE \
+$ aws iot register-certificate \
         --certificate-pem file://device.crt \
+	--ca-certificate-pem file://intermediate/certs/aws-iot-chain.cert.pem \
 	> cert-reply.json
 $ cat cert-reply.json | jq -r '.certificateArn' > cert-arn.txt
 $ cat cert-reply.json | jq -r '.certificateId' > cert-id.txt
+
+$ aws iot 
+	--certificate-pem file://device.crt \
+	--status PENDING_ACTIVATION
+
 ```
 
 
@@ -486,6 +410,7 @@ The last step is to return the device.crt and device_chain.crt certificates to t
 
 The following describes testing an IoT connecting and registering using the certificate provided by AWS ACM PCA and a Docker Container
 
+
 ## References
 
 * https://docs.aws.amazon.com/cli/latest/reference/iot
@@ -495,4 +420,30 @@ The following describes testing an IoT connecting and registering using the cert
 * https://aws.amazon.com/blogs/iot/how-to-manage-iot-device-certificate-rotation-using-aws-iot/
 * https://aws.amazon.com/blogs/mobile/use-your-own-certificate-with-aws-iot
 * https://catalog.us-east-1.prod.workshops.aws/workshops/7c2b04e7-8051-4c71-bc8b-6d2d7ce32727/en-US/provisioning-options/just-in-time-provisioning
+* https://docs.aws.amazon.com/acm-pca/latest/userguide/UsingTemplates.html
 
+## Notes (ignore these)
+
+```
+$ aws-iot-device-client \
+	--enable-sdk-logging \
+	--log-level DEBUG \
+	--sdk-log-level DEBUG \
+	--key certs/testconn/device.key \
+	--cert certs/testconn/deviceAndCACert.crt \
+	--thing-name $THING_NAME \
+	--endpoint $EP
+
+	--cert certs/testconn/device.crt \
+	--root-ca certs/testconn/device_chain.crt \
+	--root-ca certs/testconn/chain.crt \
+	--root-ca certs/testconn/pca.crt \
+
+$ echo | openssl s_client \
+	-CAfile certs/testconn/chain.crt \
+	-cert certs/testconn/device.crt \
+	-key certs/testconn/device.key \
+	-connect $EP
+
+
+```

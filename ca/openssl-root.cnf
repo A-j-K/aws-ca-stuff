@@ -83,7 +83,7 @@ stateOrProvinceName_default     = Scotland
 localityName_default            =
 0.organizationName_default      = ACME 
 organizationalUnitName_default  = Arch
-emailAddress_default            = example@acme.com
+emailAddress_default            = 
 commonName_default              = ACME-CA
 
 [ v3_ca ]
