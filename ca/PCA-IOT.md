@@ -117,6 +117,16 @@ $ aws iam create-role \
 	--assume-role-policy-document "file://templateBody/json/role.json" \
 	> /var/tmp/ca/role-details.json
 $ ROLE_ARN=$(cat /var/tmp/ca/role-details.json | jq -r .Role.Arn)
+$ echo $ROLE_ARN
+$ aws iam attach-role-policy \
+	--role-name "ACME-IOT-JIT-PROV" \
+	--policy-arn arn:aws:iam::aws:policy/service-role/AWSIoTThingsRegistration
+$ aws iam attach-role-policy \
+        --role-name "ACME-IOT-JIT-PROV" \
+        --policy-arn arn:aws:iam::aws:policy/service-role/AWSIoTLogging
+$ aws iam attach-role-policy \
+        --role-name "ACME-IOT-JIT-PROV" \
+        --policy-arn arn:aws:iam::aws:policy/service-role/AWSIoTRuleActions
 ```
 
 We then need the templateBody. A sample exists in templateBody/json/templateBody.json and we JSON.stringify thus:-
@@ -182,13 +192,30 @@ $ aws acm-pca get-certificate \
 
 We now use this to connect a device to IoT
 
+$ mosquitto_pub \
+	--cafile certs/testconn/aws.crt \
+	--cert certs/testconn/deviceandchain.crt \
+	--key certs/testconn/device.key \
+	-h $EP \
+	-p 8883 \
+	-q 1 \
+	-t foo/bar \
+	-I $THING_NAME \
+	--tls-version tlsv1.2 \
+	-m '{"Hello, let me in": "in"}' \
+	-d
+
+	-p 443 \
+	-p 8443 \
+	-p 8883 \
+	--cafile root.cert \
 
 $ aws-iot-device-client \
         --enable-sdk-logging \
         --log-level DEBUG \
         --sdk-log-level DEBUG \
         --key certs/testconn/device.key \
-        --cert certs/testconn/device_chain.crt \
+        --cert certs/testconn/deviceandchain.crt \
         --thing-name $THING_NAME \
         --endpoint $EP
 
